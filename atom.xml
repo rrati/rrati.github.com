@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Wallyworld]]></title>
+  <title><![CDATA[application melding]]></title>
   <link href="http://rrati.github.com/atom.xml" rel="self"/>
   <link href="http://rrati.github.com/"/>
-  <updated>2012-09-13T13:54:55-04:00</updated>
+  <updated>2012-09-13T16:13:01-04:00</updated>
   <id>http://rrati.github.com/</id>
   <author>
     <name><![CDATA[Robert Rati]]></name>
