@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[application melding]]></title>
-  <link href="http://rrati.github.com/atom.xml" rel="self"/>
+  <title><![CDATA[Category: MRG Grid | application melding]]></title>
+  <link href="http://rrati.github.com/blog/categories/mrg-grid/atom.xml" rel="self"/>
   <link href="http://rrati.github.com/"/>
   <updated>2012-09-18T09:31:37-04:00</updated>
   <id>http://rrati.github.com/</id>
