@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: condor | application melding]]></title>
-  <link href="http://rrati.github.com/blog/categories/condor/atom.xml" rel="self"/>
+  <title><![CDATA[Category: cluster_suite | application melding]]></title>
+  <link href="http://rrati.github.com/blog/categories/cluster-suite/atom.xml" rel="self"/>
   <link href="http://rrati.github.com/"/>
   <updated>2012-09-26T15:59:59-04:00</updated>
   <id>http://rrati.github.com/</id>
@@ -96,17 +96,6 @@ determines it needs to it will shut down the service completely to avoid
 corruption.  A way to handle this if you don't have the power setup is to
 use virtual machines for your schedd nodes.  Cluster Suite has a means to do
 fencing without needing an external power management setup for virtual machines.</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Putting It Together]]></title>
-    <link href="http://rrati.github.com/blog/2012/09/18/putting-it-together/"/>
-    <updated>2012-09-18T08:59:00-04:00</updated>
-    <id>http://rrati.github.com/blog/2012/09/18/putting-it-together</id>
-    <content type="html"><![CDATA[<p>Condor already provides the ability to integrate with numerous computing
-resources, and I will be discussing ways for it to do so with other bits
-and pieces to enhance existing or provide new functionality.</p>
 ]]></content>
   </entry>
   
