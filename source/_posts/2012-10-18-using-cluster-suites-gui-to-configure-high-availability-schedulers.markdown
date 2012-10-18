@@ -44,5 +44,5 @@ an HA schedd in your pool.
 
 You can get a video of the process as [ogv](http://rrati.fedorapeople.org/videos/cs_gui_schedd.ogv) or [mp4](http://rrati.fedorapeople.org/videos/cs_gui_schedd.mp4) if the inline video doesn't work.
 
-{% video http://rrati.fedorapeople.org/videos/cs_gui_schedd.mp4 640 480 %}
+{% video http://rrati.fedorapeople.org/videos/cs_gui_schedd.mp4 800 600 %}
 
