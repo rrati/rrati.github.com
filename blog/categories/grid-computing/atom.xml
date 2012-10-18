@@ -4,7 +4,7 @@
   <title><![CDATA[Category: grid computing | application melding]]></title>
   <link href="http://rrati.github.com/blog/categories/grid-computing/atom.xml" rel="self"/>
   <link href="http://rrati.github.com/"/>
-  <updated>2012-10-18T13:22:05-04:00</updated>
+  <updated>2012-10-18T13:31:54-04:00</updated>
   <id>http://rrati.github.com/</id>
   <author>
     <name><![CDATA[Robert Rati]]></name>
@@ -60,7 +60,7 @@ an HA schedd in your pool.</p>
 
 <p>You can get a video of the process as <a href="http://rrati.fedorapeople.org/videos/cs_gui_schedd.ogv">ogv</a> or <a href="http://rrati.fedorapeople.org/videos/cs_gui_schedd.mp4">mp4</a> if the inline video doesn't work.</p>
 
-<p><video width='640' height='480' preload='none' controls poster=''><source src='http://rrati.fedorapeople.org/videos/cs_gui_schedd.mp4' type='video/mp4; codecs="avc1.42E01E, mp4a.40.2"'/></video></p>
+<p><video width='800' height='600' preload='none' controls poster=''><source src='http://rrati.fedorapeople.org/videos/cs_gui_schedd.mp4' type='video/mp4; codecs="avc1.42E01E, mp4a.40.2"'/></video></p>
 ]]></content>
   </entry>
   
