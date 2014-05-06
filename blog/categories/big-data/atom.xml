@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Big Data | application melding]]></title>
+  <link href="http://rrati.github.com/blog/categories/big-data/atom.xml" rel="self"/>
+  <link href="http://rrati.github.com/"/>
+  <updated>2014-05-06T10:12:38-04:00</updated>
+  <id>http://rrati.github.com/</id>
+  <author>
+    <name><![CDATA[Robert Rati]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Apache Hadoop + docker + Fedora: Building Images]]></title>
+    <link href="http://rrati.github.com/blog/2014/05/06/apache-hadoop-plus-docker-plus-fedora-building-images/"/>
+    <updated>2014-05-06T09:50:10-04:00</updated>
+    <id>http://rrati.github.com/blog/2014/05/06/apache-hadoop-plus-docker-plus-fedora-building-images</id>
+    <content type="html"><![CDATA[<p>Getting Apache Hadoop running in docker presents some interesting challenges.
+I&rsquo;ll be discussing some of the challeneges as well as limitations in a later
+post.  In this post I&rsquo;ll go through the basics of getting docker running on
+Fedora and generating images with hadoop pre-installed and configured.</p>
+
+<h2>Docker Setup</h2>
+
+<p>I use Fedora for my host system when running docker images, and luckily docker
+has been a part of Fedora since Fedora 19.  First you need to install the
+docker-io packages:</p>
+
+<pre><code>yum install docker-io
+</code></pre>
+
+<p>Then you need to start docker:</p>
+
+<pre><code>systemctl start docker
+</code></pre>
+
+<p>And that&rsquo;s it.  Docker is now running on your Fedora host and it&rsquo;s ready to
+download or generate images.  If you want docker to start on system boot then
+you&rsquo;ll need to enable it:</p>
+
+<pre><code>systemctl enable docker
+</code></pre>
+
+<h2>Generating Hadoop Images</h2>
+
+<p>Scott Collier has done a great job providing docker configurations for a
+number of different use cases, and his hadoop docker configuration provides
+an easy way to generate docker images with hadoop installed and configured.
+Scott&rsquo;s hadoop docker configuration files can be found <a href="https://github.com/scollier/Fedora-Dockerfiles/tree/master/hadoop">here</a>.  There are 2 paths you can choose:</p>
+
+<ul>
+<li>All of hadoop running in a single container (single_container)</li>
+<li>Hadoop split into multiple containers (multi_container)</li>
+</ul>
+
+
+<p>The images built from the files in these directories will contain the latest
+version of hadoop in the Fedora repositories.  At the time of this writing
+that is hadoop 2.2.0 running on Fedora 20.  I&rsquo;ll be using the images generated
+from the multi_container directory because I find them more interesting and
+they&rsquo;re closer to what a real hadoop deployment would be like.</p>
+
+<p>Inside the multi_container direcory you&rsquo;ll find directories for the different
+images as well as README files that explain how to build the image.</p>
+
+<h2>A Brief Overview of a Dockerfile</h2>
+
+<p>The Dockerfile in each directory controls how the docker image is generated.
+For these images each docker file inherits from the fedora docker image,
+updates existing packages, and installs all the bits hadoop needs.  Then
+some customized configuration/scripts are added to the image, and some ports
+are exposed for networking.  Finally the images will launch an init type
+service.  Currently the images use supervisord to launch and monitor the hadoop
+processes for the image, and which daemons will be started and how they will be
+managed is controlled by the supervisord configuration file.  There is some
+work to allow systemd to run inside a container so it&rsquo;s possible later
+revisions of the Dockerfiles could use systemd instead.</p>
+
+<p>The hadoop configuration in this setup is as simple as possible.  There is
+no secure deployment, HA, mapreduce history server, etc.  Some additional
+processes are stubbed out in the supervisord configuration files but are not
+enabled.  For anything beyond a simple deployment, like HA or secure, you
+will need to modify the hadoop configuration files added to the image as
+well as the docker and supervisord configuration files.</p>
+
+<h2>Building an Image</h2>
+
+<p>Now that we have a general idea of what will happen, let&rsquo;s build an image.
+Each image is built roughly the same way.  First go into the directory for
+the image you want to generate and execute a variant of :</p>
+
+<pre><code>docker build -rm -t &lt;username&gt;/&lt;image_name&gt; .
+</code></pre>
+
+<p>You can name the images anything you like.  I usually name them in the form
+hadoop-<function>, so to generate the namenode with this naming convention I
+would execute:</p>
+
+<pre><code>docker build -rm -t rrati/hadoop-namenode .
+</code></pre>
+
+<p>Docker will head off and build the image for me.  It can take quite some time
+for the image generation to complete, but when it&rsquo;s done you should be able
+to see your image by executing:</p>
+
+<pre><code>docker images
+</code></pre>
+
+<p>If the machine you are building these images on is running docker as a user
+other than your account then you will probably need to execute the above
+commands as the user running docker.  On Fedora 20, the system docker instance
+is running as the root user so I prepend sudo to all of my docker commands.</p>
+
+<p>If you do these steps for each directory you should end up with 3 images in
+docker and you&rsquo;re ready to start them up.</p>
+]]></content>
+  </entry>
+  
+</feed>

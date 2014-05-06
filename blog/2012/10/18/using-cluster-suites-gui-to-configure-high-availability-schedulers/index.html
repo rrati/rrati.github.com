@@ -94,8 +94,8 @@ available perform &hellip;">
 
 <div class="entry-content"><p>In an <a href="http://rrati.github.com/blog/2012/09/26/using-cluster-suite-to-manage-a-high-availability-scheduler/">earlier post</a> I talked about using Cluster Suite
 to manage high availability schedulers and referenced the command line tools
-available perform the configuration.  I&#8217;d like to focus on using the GUI that
-is part of Cluster Suite to configure an HA schedd.  It&#8217;s a pretty simple
+available perform the configuration.  I&rsquo;d like to focus on using the GUI that
+is part of Cluster Suite to configure an HA schedd.  It&rsquo;s a pretty simple
 process but does require you run a wallaby shell command to complete the
 configuration.</p>
 
@@ -106,7 +106,7 @@ be part of a HA schedd configuration are part of the cluster.</p>
 <p>The next step is to create a restricted Failover Domain.  Nodes in this domain
 will run the schedd service you create, and making it restricted ensures that
 no nodes outside the Failover Domain will run the service.  If a node in the
-Failover Domain isn&#8217;t available then the service won&#8217;t run.</p>
+Failover Domain isn&rsquo;t available then the service won&rsquo;t run.</p>
 
 <p>The third step is to create a service that will comprise your schedd. Make
 sure that the relocation policy on the service is Relocate and that it is
@@ -125,16 +125,16 @@ easily accomplished by logging into a machine in the cluster and running:</p>
 
 <p>That wallaby shell command will inspect the cluster configuration and
 configure wallaby to match it.  It can handle any number of schedd
-configurations so you don&#8217;t need to run it once per setup.  However, until
+configurations so you don&rsquo;t need to run it once per setup.  However, until
 the cluster-sync-to-store command is executed, the schedd service you created
-can&#8217;t and won&#8217;t run.</p>
+can&rsquo;t and won&rsquo;t run.</p>
 
-<p>Start your service or wait for Cluster Suite to do it for you and you&#8217;ll find
+<p>Start your service or wait for Cluster Suite to do it for you and you&rsquo;ll find
 an HA schedd in your pool.</p>
 
-<p>You can get a video of the process as <a href="http://rrati.fedorapeople.org/videos/cs_gui_schedd.ogv">ogv</a> or <a href="http://rrati.fedorapeople.org/videos/cs_gui_schedd.mp4">mp4</a> if the inline video doesn&#8217;t work.</p>
+<p>You can get a video of the process as <a href="http://rrati.fedorapeople.org/videos/cs_gui_schedd.ogv">ogv</a> or <a href="http://rrati.fedorapeople.org/videos/cs_gui_schedd.mp4">mp4</a> if the inline video doesn&rsquo;t work.</p>
 
-<p><video width='800' height='600' preload='none' controls poster=''><source src='http://rrati.fedorapeople.org/videos/cs_gui_schedd.mp4' type='video/mp4; codecs="avc1.42E01E, mp4a.40.2"'/></video></p>
+<p><video width='800' height='600' preload='none' controls poster=''><source src='http://rrati.fedorapeople.org/videos/cs_gui_schedd.mp4' type='video/mp4; codecs="avc1.42E01E, mp4a.40.2"'></video></p>
 </div>
 
 
@@ -183,6 +183,8 @@ an HA schedd in your pool.</p>
         <a class="basic-alignment left" href="/blog/2012/09/26/using-cluster-suite-to-manage-a-high-availability-scheduler/" title="Previous Post: Using Cluster Suite to Manage a High Availability Scheduler">&laquo; Using Cluster Suite to Manage a High Availability Scheduler</a>
       
       
+        <a class="basic-alignment right" href="/blog/2014/05/06/apache-hadoop-plus-docker-plus-fedora-building-images/" title="Next Post: Apache Hadoop + docker + Fedora: Building Images">Apache Hadoop + docker + Fedora: Building Images &raquo;</a>
+      
     </p>
   </footer>
 </article>
@@ -192,12 +194,12 @@ an HA schedd in your pool.</p>
 <aside class="sidebar">
   
     <section>
-  <h1>About the author</h1>
-  <p>Robert is a software engineer at <a href="http://www.redhat.com">Red Hat</a> working on the <a href="http://www.redhat.com/products/mrg/grid/">Red Hat Enterprise MRG Grid</a> suite.  Some of the bits he works allows condor to interact with other bits of technology. </p>
-</section>
-<section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/05/06/apache-hadoop-plus-docker-plus-fedora-building-images/">Apache Hadoop + docker + Fedora: Building Images</a>
+      </li>
     
       <li class="post">
         <a href="/blog/2012/10/18/using-cluster-suites-gui-to-configure-high-availability-schedulers/">Using Cluster Suite's GUI to configure High Availability Schedulers </a>
@@ -247,7 +249,6 @@ an HA schedd in your pool.</p>
 
 
 
-
   
 </aside>
 
@@ -255,7 +256,7 @@ an HA schedd in your pool.</p>
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2012 - Robert Rati -
+  Copyright &copy; 2014 - Robert Rati -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 

@@ -9,9 +9,8 @@
   <meta name="author" content="Robert Rati">
 
   
-  <meta name="description" content="In an earlier post I talked about using Cluster Suite
-to manage high availability schedulers and referenced the command line tools
-available perform &hellip;">
+  <meta name="description" content="Getting Apache Hadoop running in docker presents some interesting challenges.
+I&rsquo;ll be discussing some of the challeneges as well as limitations &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -72,6 +71,139 @@ available perform &hellip;">
       
   <header>
     
+      <h1 class="entry-title"><a href="/blog/2014/05/06/apache-hadoop-plus-docker-plus-fedora-building-images/">Apache Hadoop + Docker + Fedora: Building Images</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-05-06T09:50:10-04:00" pubdate data-updated="true">May 6<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Getting Apache Hadoop running in docker presents some interesting challenges.
+I&rsquo;ll be discussing some of the challeneges as well as limitations in a later
+post.  In this post I&rsquo;ll go through the basics of getting docker running on
+Fedora and generating images with hadoop pre-installed and configured.</p>
+
+<h2>Docker Setup</h2>
+
+<p>I use Fedora for my host system when running docker images, and luckily docker
+has been a part of Fedora since Fedora 19.  First you need to install the
+docker-io packages:</p>
+
+<pre><code>yum install docker-io
+</code></pre>
+
+<p>Then you need to start docker:</p>
+
+<pre><code>systemctl start docker
+</code></pre>
+
+<p>And that&rsquo;s it.  Docker is now running on your Fedora host and it&rsquo;s ready to
+download or generate images.  If you want docker to start on system boot then
+you&rsquo;ll need to enable it:</p>
+
+<pre><code>systemctl enable docker
+</code></pre>
+
+<h2>Generating Hadoop Images</h2>
+
+<p>Scott Collier has done a great job providing docker configurations for a
+number of different use cases, and his hadoop docker configuration provides
+an easy way to generate docker images with hadoop installed and configured.
+Scott&rsquo;s hadoop docker configuration files can be found <a href="https://github.com/scollier/Fedora-Dockerfiles/tree/master/hadoop">here</a>.  There are 2 paths you can choose:</p>
+
+<ul>
+<li>All of hadoop running in a single container (single_container)</li>
+<li>Hadoop split into multiple containers (multi_container)</li>
+</ul>
+
+
+<p>The images built from the files in these directories will contain the latest
+version of hadoop in the Fedora repositories.  At the time of this writing
+that is hadoop 2.2.0 running on Fedora 20.  I&rsquo;ll be using the images generated
+from the multi_container directory because I find them more interesting and
+they&rsquo;re closer to what a real hadoop deployment would be like.</p>
+
+<p>Inside the multi_container direcory you&rsquo;ll find directories for the different
+images as well as README files that explain how to build the image.</p>
+
+<h2>A Brief Overview of a Dockerfile</h2>
+
+<p>The Dockerfile in each directory controls how the docker image is generated.
+For these images each docker file inherits from the fedora docker image,
+updates existing packages, and installs all the bits hadoop needs.  Then
+some customized configuration/scripts are added to the image, and some ports
+are exposed for networking.  Finally the images will launch an init type
+service.  Currently the images use supervisord to launch and monitor the hadoop
+processes for the image, and which daemons will be started and how they will be
+managed is controlled by the supervisord configuration file.  There is some
+work to allow systemd to run inside a container so it&rsquo;s possible later
+revisions of the Dockerfiles could use systemd instead.</p>
+
+<p>The hadoop configuration in this setup is as simple as possible.  There is
+no secure deployment, HA, mapreduce history server, etc.  Some additional
+processes are stubbed out in the supervisord configuration files but are not
+enabled.  For anything beyond a simple deployment, like HA or secure, you
+will need to modify the hadoop configuration files added to the image as
+well as the docker and supervisord configuration files.</p>
+
+<h2>Building an Image</h2>
+
+<p>Now that we have a general idea of what will happen, let&rsquo;s build an image.
+Each image is built roughly the same way.  First go into the directory for
+the image you want to generate and execute a variant of :</p>
+
+<pre><code>docker build -rm -t &lt;username&gt;/&lt;image_name&gt; .
+</code></pre>
+
+<p>You can name the images anything you like.  I usually name them in the form
+hadoop-<function>, so to generate the namenode with this naming convention I
+would execute:</p>
+
+<pre><code>docker build -rm -t rrati/hadoop-namenode .
+</code></pre>
+
+<p>Docker will head off and build the image for me.  It can take quite some time
+for the image generation to complete, but when it&rsquo;s done you should be able
+to see your image by executing:</p>
+
+<pre><code>docker images
+</code></pre>
+
+<p>If the machine you are building these images on is running docker as a user
+other than your account then you will probably need to execute the above
+commands as the user running docker.  On Fedora 20, the system docker instance
+is running as the root user so I prepend sudo to all of my docker commands.</p>
+
+<p>If you do these steps for each directory you should end up with 3 images in
+docker and you&rsquo;re ready to start them up.</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
       <h1 class="entry-title"><a href="/blog/2012/10/18/using-cluster-suites-gui-to-configure-high-availability-schedulers/">Using Cluster Suite&#8217;s GUI to Configure High Availability Schedulers</a></h1>
     
     
@@ -97,8 +229,8 @@ available perform &hellip;">
 
   <div class="entry-content"><p>In an <a href="http://rrati.github.com/blog/2012/09/26/using-cluster-suite-to-manage-a-high-availability-scheduler/">earlier post</a> I talked about using Cluster Suite
 to manage high availability schedulers and referenced the command line tools
-available perform the configuration.  I&#8217;d like to focus on using the GUI that
-is part of Cluster Suite to configure an HA schedd.  It&#8217;s a pretty simple
+available perform the configuration.  I&rsquo;d like to focus on using the GUI that
+is part of Cluster Suite to configure an HA schedd.  It&rsquo;s a pretty simple
 process but does require you run a wallaby shell command to complete the
 configuration.</p>
 
@@ -109,7 +241,7 @@ be part of a HA schedd configuration are part of the cluster.</p>
 <p>The next step is to create a restricted Failover Domain.  Nodes in this domain
 will run the schedd service you create, and making it restricted ensures that
 no nodes outside the Failover Domain will run the service.  If a node in the
-Failover Domain isn&#8217;t available then the service won&#8217;t run.</p>
+Failover Domain isn&rsquo;t available then the service won&rsquo;t run.</p>
 
 <p>The third step is to create a service that will comprise your schedd. Make
 sure that the relocation policy on the service is Relocate and that it is
@@ -128,16 +260,16 @@ easily accomplished by logging into a machine in the cluster and running:</p>
 
 <p>That wallaby shell command will inspect the cluster configuration and
 configure wallaby to match it.  It can handle any number of schedd
-configurations so you don&#8217;t need to run it once per setup.  However, until
+configurations so you don&rsquo;t need to run it once per setup.  However, until
 the cluster-sync-to-store command is executed, the schedd service you created
-can&#8217;t and won&#8217;t run.</p>
+can&rsquo;t and won&rsquo;t run.</p>
 
-<p>Start your service or wait for Cluster Suite to do it for you and you&#8217;ll find
+<p>Start your service or wait for Cluster Suite to do it for you and you&rsquo;ll find
 an HA schedd in your pool.</p>
 
-<p>You can get a video of the process as <a href="http://rrati.fedorapeople.org/videos/cs_gui_schedd.ogv">ogv</a> or <a href="http://rrati.fedorapeople.org/videos/cs_gui_schedd.mp4">mp4</a> if the inline video doesn&#8217;t work.</p>
+<p>You can get a video of the process as <a href="http://rrati.fedorapeople.org/videos/cs_gui_schedd.ogv">ogv</a> or <a href="http://rrati.fedorapeople.org/videos/cs_gui_schedd.mp4">mp4</a> if the inline video doesn&rsquo;t work.</p>
 
-<p><video width='800' height='600' preload='none' controls poster=''><source src='http://rrati.fedorapeople.org/videos/cs_gui_schedd.mp4' type='video/mp4; codecs="avc1.42E01E, mp4a.40.2"'/></video></p>
+<p><video width='800' height='600' preload='none' controls poster=''><source src='http://rrati.fedorapeople.org/videos/cs_gui_schedd.mp4' type='video/mp4; codecs="avc1.42E01E, mp4a.40.2"'></video></p>
 </div>
   
   
@@ -179,7 +311,7 @@ store the job queue log and coordinate which node is running the schedd.  This
 means that each node that can run a particular schedd not only have condor
 configured but the node needs to be configured to access the shared storage.</p>
 
-<p>For most people condor&#8217;s native HA management of the schedd is probably
+<p>For most people condor&rsquo;s native HA management of the schedd is probably
 enough.  However, using Cluster Suite to manage the schedd provides some
 additional control and protects against job queue corruption that can occur
 in rare instances due to issues with the shared storage mechanism.</p>
@@ -187,7 +319,7 @@ in rare instances due to issues with the shared storage mechanism.</p>
 <p>Condor even provides all the tools necessary to hook into Cluster Suite,
 including a new set of commands for the wallaby shell that make configuration
 and management tasks as easy as a single command.  While a functioning wallaby
-setup isn&#8217;t required to work with Cluster Suite, I would highly recommended
+setup isn&rsquo;t required to work with Cluster Suite, I would highly recommended
 using it.  The wallaby shell commands greatly simplify configuring both
 Cluster Suite and condor nodes (through wallaby).</p>
 
@@ -208,13 +340,13 @@ configure those same nodes in wallaby to run an HA schedd.  Seems nice, but
 what are the advantages?  Plenty.</p>
 
 <p>You gain a lot of control over which node is running the schedd.  With
-condor&#8217;s native mechanism, it&#8217;s pot luck which node will run the schedd.  All
+condor&rsquo;s native mechanism, it&rsquo;s pot luck which node will run the schedd.  All
 nodes point to the same shared storage and whoever gets there first will run
 the schedd.  Every time.  If a specific node is having problems that cause
 the schedd to crash, it could continually win the race to run the schedd
 leaving your highly available schedd not very available.</p>
 
-<p>Cluster Suite doesn&#8217;t rely upon the shared storage to determine which node
+<p>Cluster Suite doesn&rsquo;t rely upon the shared storage to determine which node
 is going to run the schedd.  It has a set of tools, including a GUI, that
 allow you to move a schedd from one node to another at any time.  In addition
 to that, you can specify parameters that control when Cluster Suite will
@@ -222,7 +354,7 @@ decide to move the schedd to another node instead of restarting it on the
 same machine.  For example, I can tell Cluster Suite to move the schedd to
 another machine if it restarts 3 times in 60 seconds.</p>
 
-<p>Cluster Suite also manages the shared storage.  I don&#8217;t have to configure
+<p>Cluster Suite also manages the shared storage.  I don&rsquo;t have to configure
 each node to mount the shared storage at the same mount point and ensure it
 will be mounted at boot.  Cluster Suite creates the mount point on the machine
 and mounts the shared storage when it starts the schedd.  This means the
@@ -238,17 +370,17 @@ and start it on another node.  This means no more split brain.</p>
 
 <p>Are there any downsides to using Cluster Suite to manage my schedds? Not many
 actually.  Obviously you need to have Cluster Suite installed on each node
-that will be part of an HA schedd configuration, so there&#8217;s an additional
-disk space/memory requirement.  The biggest issue I&#8217;ve found is that since
+that will be part of an HA schedd configuration, so there&rsquo;s an additional
+disk space/memory requirement.  The biggest issue I&rsquo;ve found is that since
 the condor_master will not be managing the schedds, none of the daemon
 management commands will work (ie condor_on|off|restart, etc).  Instead you
-would need to use Cluster Suite&#8217;s tools for those tasks.</p>
+would need to use Cluster Suite&rsquo;s tools for those tasks.</p>
 
 <p>You will also have to setup fencing in Cluster Suite for everything to work
-correctly, which might mean new hardware if you don&#8217;t have a remotely
-manageable power setup.  If Cluster Suite can&#8217;t fence a node when it
+correctly, which might mean new hardware if you don&rsquo;t have a remotely
+manageable power setup.  If Cluster Suite can&rsquo;t fence a node when it
 determines it needs to it will shut down the service completely to avoid
-corruption.  A way to handle this if you don&#8217;t have the power setup is to
+corruption.  A way to handle this if you don&rsquo;t have the power setup is to
 use virtual machines for your schedd nodes.  Cluster Suite has a means to do
 fencing without needing an external power management setup for virtual machines.</p>
 </div>
@@ -305,12 +437,12 @@ and pieces to enhance existing or provide new functionality.</p>
 <aside class="sidebar">
   
     <section>
-  <h1>About the author</h1>
-  <p>Robert is a software engineer at <a href="http://www.redhat.com">Red Hat</a> working on the <a href="http://www.redhat.com/products/mrg/grid/">Red Hat Enterprise MRG Grid</a> suite.  Some of the bits he works allows condor to interact with other bits of technology. </p>
-</section>
-<section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/05/06/apache-hadoop-plus-docker-plus-fedora-building-images/">Apache Hadoop + docker + Fedora: Building Images</a>
+      </li>
     
       <li class="post">
         <a href="/blog/2012/10/18/using-cluster-suites-gui-to-configure-high-availability-schedulers/">Using Cluster Suite&#8217;s GUI to configure High Availability Schedulers </a>
@@ -360,14 +492,13 @@ and pieces to enhance existing or provide new functionality.</p>
 
 
 
-
   
 </aside>
 
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2012 - Robert Rati -
+  Copyright &copy; 2014 - Robert Rati -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 

@@ -1,0 +1,339 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Apache Hadoop + docker + Fedora: Building Images - application melding</title>
+  <meta name="author" content="Robert Rati">
+
+  
+  <meta name="description" content="Getting Apache Hadoop running in docker presents some interesting challenges.
+I&rsquo;ll be discussing some of the challeneges as well as limitations &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://rrati.github.com/blog/2014/05/06/apache-hadoop-plus-docker-plus-fedora-building-images/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/ender.js"></script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <link href="/atom.xml" rel="alternate" title="application melding" type="application/atom+xml">
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">application melding</a></h1>
+  
+    <h2>making square pegs fit in round holes</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:rrati.github.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Apache Hadoop + Docker + Fedora: Building Images</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-05-06T09:50:10-04:00" pubdate data-updated="true">May 6<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>Getting Apache Hadoop running in docker presents some interesting challenges.
+I&rsquo;ll be discussing some of the challeneges as well as limitations in a later
+post.  In this post I&rsquo;ll go through the basics of getting docker running on
+Fedora and generating images with hadoop pre-installed and configured.</p>
+
+<h2>Docker Setup</h2>
+
+<p>I use Fedora for my host system when running docker images, and luckily docker
+has been a part of Fedora since Fedora 19.  First you need to install the
+docker-io packages:</p>
+
+<pre><code>yum install docker-io
+</code></pre>
+
+<p>Then you need to start docker:</p>
+
+<pre><code>systemctl start docker
+</code></pre>
+
+<p>And that&rsquo;s it.  Docker is now running on your Fedora host and it&rsquo;s ready to
+download or generate images.  If you want docker to start on system boot then
+you&rsquo;ll need to enable it:</p>
+
+<pre><code>systemctl enable docker
+</code></pre>
+
+<h2>Generating Hadoop Images</h2>
+
+<p>Scott Collier has done a great job providing docker configurations for a
+number of different use cases, and his hadoop docker configuration provides
+an easy way to generate docker images with hadoop installed and configured.
+Scott&rsquo;s hadoop docker configuration files can be found <a href="https://github.com/scollier/Fedora-Dockerfiles/tree/master/hadoop">here</a>.  There are 2 paths you can choose:</p>
+
+<ul>
+<li>All of hadoop running in a single container (single_container)</li>
+<li>Hadoop split into multiple containers (multi_container)</li>
+</ul>
+
+
+<p>The images built from the files in these directories will contain the latest
+version of hadoop in the Fedora repositories.  At the time of this writing
+that is hadoop 2.2.0 running on Fedora 20.  I&rsquo;ll be using the images generated
+from the multi_container directory because I find them more interesting and
+they&rsquo;re closer to what a real hadoop deployment would be like.</p>
+
+<p>Inside the multi_container direcory you&rsquo;ll find directories for the different
+images as well as README files that explain how to build the image.</p>
+
+<h2>A Brief Overview of a Dockerfile</h2>
+
+<p>The Dockerfile in each directory controls how the docker image is generated.
+For these images each docker file inherits from the fedora docker image,
+updates existing packages, and installs all the bits hadoop needs.  Then
+some customized configuration/scripts are added to the image, and some ports
+are exposed for networking.  Finally the images will launch an init type
+service.  Currently the images use supervisord to launch and monitor the hadoop
+processes for the image, and which daemons will be started and how they will be
+managed is controlled by the supervisord configuration file.  There is some
+work to allow systemd to run inside a container so it&rsquo;s possible later
+revisions of the Dockerfiles could use systemd instead.</p>
+
+<p>The hadoop configuration in this setup is as simple as possible.  There is
+no secure deployment, HA, mapreduce history server, etc.  Some additional
+processes are stubbed out in the supervisord configuration files but are not
+enabled.  For anything beyond a simple deployment, like HA or secure, you
+will need to modify the hadoop configuration files added to the image as
+well as the docker and supervisord configuration files.</p>
+
+<h2>Building an Image</h2>
+
+<p>Now that we have a general idea of what will happen, let&rsquo;s build an image.
+Each image is built roughly the same way.  First go into the directory for
+the image you want to generate and execute a variant of :</p>
+
+<pre><code>docker build -rm -t &lt;username&gt;/&lt;image_name&gt; .
+</code></pre>
+
+<p>You can name the images anything you like.  I usually name them in the form
+hadoop-<function>, so to generate the namenode with this naming convention I
+would execute:</p>
+
+<pre><code>docker build -rm -t rrati/hadoop-namenode .
+</code></pre>
+
+<p>Docker will head off and build the image for me.  It can take quite some time
+for the image generation to complete, but when it&rsquo;s done you should be able
+to see your image by executing:</p>
+
+<pre><code>docker images
+</code></pre>
+
+<p>If the machine you are building these images on is running docker as a user
+other than your account then you will probably need to execute the above
+commands as the user running docker.  On Fedora 20, the system docker instance
+is running as the root user so I prepend sudo to all of my docker commands.</p>
+
+<p>If you do these steps for each directory you should end up with 3 images in
+docker and you&rsquo;re ready to start them up.</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Robert Rati</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-05-06T09:50:10-04:00" pubdate data-updated="true">May 6<span>th</span>, 2014</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/big-data/'>Big Data</a>, <a class='category' href='/blog/categories/fedora/'>Fedora</a>, <a class='category' href='/blog/categories/hadoop/'>hadoop</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://rrati.github.com/blog/2014/05/06/apache-hadoop-plus-docker-plus-fedora-building-images/" data-via="" data-counturl="http://rrati.github.com/blog/2014/05/06/apache-hadoop-plus-docker-plus-fedora-building-images/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2012/10/18/using-cluster-suites-gui-to-configure-high-availability-schedulers/" title="Previous Post: Using Cluster Suite's GUI to configure High Availability Schedulers ">&laquo; Using Cluster Suite's GUI to configure High Availability Schedulers </a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/05/06/apache-hadoop-plus-docker-plus-fedora-building-images/">Apache Hadoop + docker + Fedora: Building Images</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2012/10/18/using-cluster-suites-gui-to-configure-high-availability-schedulers/">Using Cluster Suite's GUI to configure High Availability Schedulers </a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2012/09/26/using-cluster-suite-to-manage-a-high-availability-scheduler/">Using Cluster Suite to Manage a High Availability Scheduler</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2012/09/18/putting-it-together/">Putting It Together</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/rrati">@rrati</a> on GitHub
+  
+  <script type="text/javascript">
+    $.domReady(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'rrati',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Robert Rati -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

@@ -4,7 +4,7 @@
   <title><![CDATA[Category: computing | application melding]]></title>
   <link href="http://rrati.github.com/blog/categories/computing/atom.xml" rel="self"/>
   <link href="http://rrati.github.com/"/>
-  <updated>2012-10-18T13:31:54-04:00</updated>
+  <updated>2014-05-06T10:12:38-04:00</updated>
   <id>http://rrati.github.com/</id>
   <author>
     <name><![CDATA[Robert Rati]]></name>
@@ -20,8 +20,8 @@
     <id>http://rrati.github.com/blog/2012/10/18/using-cluster-suites-gui-to-configure-high-availability-schedulers</id>
     <content type="html"><![CDATA[<p>In an <a href="http://rrati.github.com/blog/2012/09/26/using-cluster-suite-to-manage-a-high-availability-scheduler/">earlier post</a> I talked about using Cluster Suite
 to manage high availability schedulers and referenced the command line tools
-available perform the configuration.  I'd like to focus on using the GUI that
-is part of Cluster Suite to configure an HA schedd.  It's a pretty simple
+available perform the configuration.  I&rsquo;d like to focus on using the GUI that
+is part of Cluster Suite to configure an HA schedd.  It&rsquo;s a pretty simple
 process but does require you run a wallaby shell command to complete the
 configuration.</p>
 
@@ -32,7 +32,7 @@ be part of a HA schedd configuration are part of the cluster.</p>
 <p>The next step is to create a restricted Failover Domain.  Nodes in this domain
 will run the schedd service you create, and making it restricted ensures that
 no nodes outside the Failover Domain will run the service.  If a node in the
-Failover Domain isn't available then the service won't run.</p>
+Failover Domain isn&rsquo;t available then the service won&rsquo;t run.</p>
 
 <p>The third step is to create a service that will comprise your schedd. Make
 sure that the relocation policy on the service is Relocate and that it is
@@ -51,16 +51,16 @@ easily accomplished by logging into a machine in the cluster and running:</p>
 
 <p>That wallaby shell command will inspect the cluster configuration and
 configure wallaby to match it.  It can handle any number of schedd
-configurations so you don't need to run it once per setup.  However, until
+configurations so you don&rsquo;t need to run it once per setup.  However, until
 the cluster-sync-to-store command is executed, the schedd service you created
-can't and won't run.</p>
+can&rsquo;t and won&rsquo;t run.</p>
 
-<p>Start your service or wait for Cluster Suite to do it for you and you'll find
+<p>Start your service or wait for Cluster Suite to do it for you and you&rsquo;ll find
 an HA schedd in your pool.</p>
 
-<p>You can get a video of the process as <a href="http://rrati.fedorapeople.org/videos/cs_gui_schedd.ogv">ogv</a> or <a href="http://rrati.fedorapeople.org/videos/cs_gui_schedd.mp4">mp4</a> if the inline video doesn't work.</p>
+<p>You can get a video of the process as <a href="http://rrati.fedorapeople.org/videos/cs_gui_schedd.ogv">ogv</a> or <a href="http://rrati.fedorapeople.org/videos/cs_gui_schedd.mp4">mp4</a> if the inline video doesn&rsquo;t work.</p>
 
-<p><video width='800' height='600' preload='none' controls poster=''><source src='http://rrati.fedorapeople.org/videos/cs_gui_schedd.mp4' type='video/mp4; codecs="avc1.42E01E, mp4a.40.2"'/></video></p>
+<p><video width='800' height='600' preload='none' controls poster=''><source src='http://rrati.fedorapeople.org/videos/cs_gui_schedd.mp4">http://rrati.fedorapeople.org/videos/cs_gui_schedd.mp4</a>' ></video></p>
 ]]></content>
   </entry>
   
@@ -75,7 +75,7 @@ store the job queue log and coordinate which node is running the schedd.  This
 means that each node that can run a particular schedd not only have condor
 configured but the node needs to be configured to access the shared storage.</p>
 
-<p>For most people condor's native HA management of the schedd is probably
+<p>For most people condor&rsquo;s native HA management of the schedd is probably
 enough.  However, using Cluster Suite to manage the schedd provides some
 additional control and protects against job queue corruption that can occur
 in rare instances due to issues with the shared storage mechanism.</p>
@@ -83,7 +83,7 @@ in rare instances due to issues with the shared storage mechanism.</p>
 <p>Condor even provides all the tools necessary to hook into Cluster Suite,
 including a new set of commands for the wallaby shell that make configuration
 and management tasks as easy as a single command.  While a functioning wallaby
-setup isn't required to work with Cluster Suite, I would highly recommended
+setup isn&rsquo;t required to work with Cluster Suite, I would highly recommended
 using it.  The wallaby shell commands greatly simplify configuring both
 Cluster Suite and condor nodes (through wallaby).</p>
 
@@ -104,13 +104,13 @@ configure those same nodes in wallaby to run an HA schedd.  Seems nice, but
 what are the advantages?  Plenty.</p>
 
 <p>You gain a lot of control over which node is running the schedd.  With
-condor's native mechanism, it's pot luck which node will run the schedd.  All
+condor&rsquo;s native mechanism, it&rsquo;s pot luck which node will run the schedd.  All
 nodes point to the same shared storage and whoever gets there first will run
 the schedd.  Every time.  If a specific node is having problems that cause
 the schedd to crash, it could continually win the race to run the schedd
 leaving your highly available schedd not very available.</p>
 
-<p>Cluster Suite doesn't rely upon the shared storage to determine which node
+<p>Cluster Suite doesn&rsquo;t rely upon the shared storage to determine which node
 is going to run the schedd.  It has a set of tools, including a GUI, that
 allow you to move a schedd from one node to another at any time.  In addition
 to that, you can specify parameters that control when Cluster Suite will
@@ -118,7 +118,7 @@ decide to move the schedd to another node instead of restarting it on the
 same machine.  For example, I can tell Cluster Suite to move the schedd to
 another machine if it restarts 3 times in 60 seconds.</p>
 
-<p>Cluster Suite also manages the shared storage.  I don't have to configure
+<p>Cluster Suite also manages the shared storage.  I don&rsquo;t have to configure
 each node to mount the shared storage at the same mount point and ensure it
 will be mounted at boot.  Cluster Suite creates the mount point on the machine
 and mounts the shared storage when it starts the schedd.  This means the
@@ -134,17 +134,17 @@ and start it on another node.  This means no more split brain.</p>
 
 <p>Are there any downsides to using Cluster Suite to manage my schedds? Not many
 actually.  Obviously you need to have Cluster Suite installed on each node
-that will be part of an HA schedd configuration, so there's an additional
-disk space/memory requirement.  The biggest issue I've found is that since
+that will be part of an HA schedd configuration, so there&rsquo;s an additional
+disk space/memory requirement.  The biggest issue I&rsquo;ve found is that since
 the condor_master will not be managing the schedds, none of the daemon
 management commands will work (ie condor_on|off|restart, etc).  Instead you
-would need to use Cluster Suite's tools for those tasks.</p>
+would need to use Cluster Suite&rsquo;s tools for those tasks.</p>
 
 <p>You will also have to setup fencing in Cluster Suite for everything to work
-correctly, which might mean new hardware if you don't have a remotely
-manageable power setup.  If Cluster Suite can't fence a node when it
+correctly, which might mean new hardware if you don&rsquo;t have a remotely
+manageable power setup.  If Cluster Suite can&rsquo;t fence a node when it
 determines it needs to it will shut down the service completely to avoid
-corruption.  A way to handle this if you don't have the power setup is to
+corruption.  A way to handle this if you don&rsquo;t have the power setup is to
 use virtual machines for your schedd nodes.  Cluster Suite has a means to do
 fencing without needing an external power management setup for virtual machines.</p>
 ]]></content>

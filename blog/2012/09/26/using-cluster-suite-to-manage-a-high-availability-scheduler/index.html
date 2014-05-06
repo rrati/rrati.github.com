@@ -97,7 +97,7 @@ store the job queue log and coordinate which node is running the schedd.  This
 means that each node that can run a particular schedd not only have condor
 configured but the node needs to be configured to access the shared storage.</p>
 
-<p>For most people condor&#8217;s native HA management of the schedd is probably
+<p>For most people condor&rsquo;s native HA management of the schedd is probably
 enough.  However, using Cluster Suite to manage the schedd provides some
 additional control and protects against job queue corruption that can occur
 in rare instances due to issues with the shared storage mechanism.</p>
@@ -105,7 +105,7 @@ in rare instances due to issues with the shared storage mechanism.</p>
 <p>Condor even provides all the tools necessary to hook into Cluster Suite,
 including a new set of commands for the wallaby shell that make configuration
 and management tasks as easy as a single command.  While a functioning wallaby
-setup isn&#8217;t required to work with Cluster Suite, I would highly recommended
+setup isn&rsquo;t required to work with Cluster Suite, I would highly recommended
 using it.  The wallaby shell commands greatly simplify configuring both
 Cluster Suite and condor nodes (through wallaby).</p>
 
@@ -126,13 +126,13 @@ configure those same nodes in wallaby to run an HA schedd.  Seems nice, but
 what are the advantages?  Plenty.</p>
 
 <p>You gain a lot of control over which node is running the schedd.  With
-condor&#8217;s native mechanism, it&#8217;s pot luck which node will run the schedd.  All
+condor&rsquo;s native mechanism, it&rsquo;s pot luck which node will run the schedd.  All
 nodes point to the same shared storage and whoever gets there first will run
 the schedd.  Every time.  If a specific node is having problems that cause
 the schedd to crash, it could continually win the race to run the schedd
 leaving your highly available schedd not very available.</p>
 
-<p>Cluster Suite doesn&#8217;t rely upon the shared storage to determine which node
+<p>Cluster Suite doesn&rsquo;t rely upon the shared storage to determine which node
 is going to run the schedd.  It has a set of tools, including a GUI, that
 allow you to move a schedd from one node to another at any time.  In addition
 to that, you can specify parameters that control when Cluster Suite will
@@ -140,7 +140,7 @@ decide to move the schedd to another node instead of restarting it on the
 same machine.  For example, I can tell Cluster Suite to move the schedd to
 another machine if it restarts 3 times in 60 seconds.</p>
 
-<p>Cluster Suite also manages the shared storage.  I don&#8217;t have to configure
+<p>Cluster Suite also manages the shared storage.  I don&rsquo;t have to configure
 each node to mount the shared storage at the same mount point and ensure it
 will be mounted at boot.  Cluster Suite creates the mount point on the machine
 and mounts the shared storage when it starts the schedd.  This means the
@@ -156,17 +156,17 @@ and start it on another node.  This means no more split brain.</p>
 
 <p>Are there any downsides to using Cluster Suite to manage my schedds? Not many
 actually.  Obviously you need to have Cluster Suite installed on each node
-that will be part of an HA schedd configuration, so there&#8217;s an additional
-disk space/memory requirement.  The biggest issue I&#8217;ve found is that since
+that will be part of an HA schedd configuration, so there&rsquo;s an additional
+disk space/memory requirement.  The biggest issue I&rsquo;ve found is that since
 the condor_master will not be managing the schedds, none of the daemon
 management commands will work (ie condor_on|off|restart, etc).  Instead you
-would need to use Cluster Suite&#8217;s tools for those tasks.</p>
+would need to use Cluster Suite&rsquo;s tools for those tasks.</p>
 
 <p>You will also have to setup fencing in Cluster Suite for everything to work
-correctly, which might mean new hardware if you don&#8217;t have a remotely
-manageable power setup.  If Cluster Suite can&#8217;t fence a node when it
+correctly, which might mean new hardware if you don&rsquo;t have a remotely
+manageable power setup.  If Cluster Suite can&rsquo;t fence a node when it
 determines it needs to it will shut down the service completely to avoid
-corruption.  A way to handle this if you don&#8217;t have the power setup is to
+corruption.  A way to handle this if you don&rsquo;t have the power setup is to
 use virtual machines for your schedd nodes.  Cluster Suite has a means to do
 fencing without needing an external power management setup for virtual machines.</p>
 </div>
@@ -228,12 +228,12 @@ fencing without needing an external power management setup for virtual machines.
 <aside class="sidebar">
   
     <section>
-  <h1>About the author</h1>
-  <p>Robert is a software engineer at <a href="http://www.redhat.com">Red Hat</a> working on the <a href="http://www.redhat.com/products/mrg/grid/">Red Hat Enterprise MRG Grid</a> suite.  Some of the bits he works allows condor to interact with other bits of technology. </p>
-</section>
-<section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/05/06/apache-hadoop-plus-docker-plus-fedora-building-images/">Apache Hadoop + docker + Fedora: Building Images</a>
+      </li>
     
       <li class="post">
         <a href="/blog/2012/10/18/using-cluster-suites-gui-to-configure-high-availability-schedulers/">Using Cluster Suite's GUI to configure High Availability Schedulers </a>
@@ -283,7 +283,6 @@ fencing without needing an external power management setup for virtual machines.
 
 
 
-
   
 </aside>
 
@@ -291,7 +290,7 @@ fencing without needing an external power management setup for virtual machines.
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2012 - Robert Rati -
+  Copyright &copy; 2014 - Robert Rati -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 
