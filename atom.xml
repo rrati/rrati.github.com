@@ -4,7 +4,7 @@
   <title><![CDATA[application melding]]></title>
   <link href="http://rrati.github.com/atom.xml" rel="self"/>
   <link href="http://rrati.github.com/"/>
-  <updated>2014-05-06T10:12:38-04:00</updated>
+  <updated>2014-05-07T09:19:53-04:00</updated>
   <id>http://rrati.github.com/</id>
   <author>
     <name><![CDATA[Robert Rati]]></name>
@@ -12,6 +12,207 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Apache Hadoop + docker + Fedora: Running Images]]></title>
+    <link href="http://rrati.github.com/blog/2014/05/07/apache-hadoop-plus-docker-plus-fedora-running-images/"/>
+    <updated>2014-05-07T09:08:27-04:00</updated>
+    <id>http://rrati.github.com/blog/2014/05/07/apache-hadoop-plus-docker-plus-fedora-running-images</id>
+    <content type="html"><![CDATA[<p>In a previous <a href="http://rrati.github.io/blog/2014/05/06/apache-hadoop-plus-docker-plus-fedora-building-images">post</a> I discussed how to generate docker images that include
+a pre-configured and simple hadoop setup.  Now it&rsquo;s time to run them and that
+provides us with our first hurdle: DNS</p>
+
+<h2>Hadoop and DNS</h2>
+
+<p>If you&rsquo;ve ever tried to run a hadoop cluster without DNS you may not have
+gotten very far.  The namenode appears to use DNS lookups to verify datanodes
+that try to connect to it.  If DNS isn&rsquo;t setup properly then the namenode will
+never show any datanodes connected to it and if you check the namenode logs
+you&rsquo;ll see an odd error like:</p>
+
+<p>error: DisallowedDatanodeException: Datanode denied communication with namenode: DatanodeRegistration(&lt;ip|hostname>, storageID=DS-1141974467-172.17.0.14-50010-1393006490185, infoPort=50075, ipcPort=50020, storageInfo=lv=-47;cid=CID-555184a7-6958-41d3-96d2-d8bcc7211819;nsid=1734635015;c=0)</p>
+
+<p>Using only IP addresses in the configuration files won&rsquo;t solve the problem
+either, as the namenode appears to do a reverse lookup for nodes that come in
+with an IP instead of a hostname.  Where&rsquo;s the trust?</p>
+
+<p>There are a few solutions to this depending on the version of hadoop that will
+be installed in the image.  Fedora 20 has hadoop 2.2.0 and will require a DNS
+solution which I&rsquo;ll detail in just a bit.  I&rsquo;m working on updating hadoop to
+2.4.0 for Fedora 21 and that has a configuration option that was introduced in
+2.3.0 that may allow you to disable reverse DNS lookups from the namenode when
+datanodes register.  For hadoop 2.3.0 and beyond you may avoid the need to set
+up a DNS server by adding the following snipet to the hdfs-site.xml config file:</p>
+
+<pre><code>&lt;property&gt;
+    &lt;name&gt;dfs.namenode.datanode.registration.ip-hostname-check&lt;/name&gt;
+    &lt;value&gt;false&lt;/value&gt;
+&lt;/property&gt;
+</code></pre>
+
+<p>If you need to setup a DNS server it isn&rsquo;t too hard, but it does limit how
+functional these containers can be since the hostname of the datanodes will
+need to be resolvable in DNS.  That&rsquo;s not too bad for a local setup where IP
+addresses can be easily controlled, but when you branch out to using multiple
+physical hosts this can be a problem for a number of reasons.  I&rsquo;ll go through
+some of the limitations in a later post, but for now I&rsquo;ll go through using
+dnsmasq to setup a local DNS server to get these containers functioning on a
+single host.</p>
+
+<h2>Setting Up Dnsmasq</h2>
+
+<p>This is pretty well covered in the README, but I&rsquo;ll cover it again here in a
+little more detail.  First we need to install dnsmasq:</p>
+
+<pre><code>yum install dnsmasq
+</code></pre>
+
+<p>Next you&rsquo;ll need to configure dnsmasq to listen on the bridge interface docker
+will use.  By default that is the interface docker0.  To tell dnsmasq to listen
+on that interface:</p>
+
+<pre><code>echo "interface=docker0" &gt;&gt; /etc/dnsmasq.conf
+</code></pre>
+
+<p>Next we need to setup the forward and reverse resolvers.  Create a 0hosts file
+in /etc/dnsmasq.d and add these entries to it:</p>
+
+<pre><code>address="/namenode/&lt;namenode_ip&gt;"
+ptr-record=&lt;reverse_namenode_ip&gt;.in-addr.arpa,namenode
+address="/resourcemgr/&lt;resourcemgr_ip&gt;"
+ptr-record=&lt;reserve_resourcemgr_ip&gt;.in-addr.arpa,resourcemgr
+address="/datanode1/&lt;datanode_ip&gt;"
+ptr-record=&lt;reverse_datanode_ip&gt;.in-addr.arpa,datanode1
+</code></pre>
+
+<p>The hostnames for the namenode and resource manager are important if using
+images generated from the Dockerfiles I pointed at earlier.</p>
+
+<p>What IP addresses should you use?  Well, that&rsquo;s a slightly more complicated
+answer than it seems because of how docker hands out IP addresses.  I&rsquo;m going
+to use an example where the namenode is given the IP address 172.17.0.2, so
+the DNS entries for the namenode with that IP address is:</p>
+
+<pre><code>address="/namenode/172.17.0.2"
+ptr-record=2.0.17.172.in-addr.arpa,namenode
+</code></pre>
+
+<p>If you want to add more datanodes to the pool you&rsquo;ll obviously need to add
+more entries to the DNS records.  Now that we&rsquo;ve got dnsmasq configured let&rsquo;s
+start it:</p>
+
+<pre><code>systemctl start dnsmasq
+</code></pre>
+
+<h2>Starting the Containers</h2>
+
+<p>Now that we have DNS setup we can start some containers.  As you might expect
+there&rsquo;s a catch here as well.  The containers must be started in the following
+order:</p>
+
+<ol>
+<li>namenode</li>
+<li>resource manager</li>
+<li>datanode(s)</li>
+</ol>
+
+
+<p>This startup order is imposed by the hadoop daemons and what they do when they
+fail to contact another daemon they depend upon.  In some instances I&rsquo;ve seen
+the daemons attempt to reconnect, and others I&rsquo;ve seen them just exit.  The
+surefire way to get everything up and running is to start the containers in the
+order I provided.</p>
+
+<p>To start the namenode, execute:</p>
+
+<pre><code>docker run -d -h namenode --dns &lt;dns_ip&gt; -p 50070:50070 &lt;username&gt;/hadoop-namenode
+</code></pre>
+
+<p>What this command is doing is important so I&rsquo;ll break it down piece by piece:</p>
+
+<p>-d: Run in daemon mode
+-h: Give the container this hostname
+&mdash;dns: Set this as the DNS server in the container.  It should be the IP address</p>
+
+<pre><code>   of the router inside docker.  This should always be the first IP address
+   in the subnet determined by the bridge interface.
+</code></pre>
+
+<p>-p: Map a port on the host machine to a port on the container</p>
+
+<p>For the containers and the DNS setup I&rsquo;ve been detailing in my posts using the
+default docker bridge interface I would execute:</p>
+
+<pre><code>docker run -d -h namenode --dns 172.17.0.1 -p 50070:50070 rrati/hadoop-namenode
+</code></pre>
+
+<p>The resource manager and the datanode are started similarly:</p>
+
+<pre><code>docker run -d -h resourcemgr --dns &lt;dns_ip&gt; -p 8088:8088 -p 8032:8032 &lt;username&gt;/hadoop-resourcemgr
+docker run -d -h datanode1 --dns &lt;dns_ip&gt; -p 50075:50075 -p 8042:8042 &lt;username&gt;/hadoop-datanode
+</code></pre>
+
+<p>Make sure that the hostnames provided with the -h option match the hostnames
+you setup in dnsmasq.</p>
+
+<h2>Using External Storage</h2>
+
+<p>This setup is using HDFS for storage, but that&rsquo;s not going to do us much good
+if the everything in the namenode or a datanode is lost every time a container
+is stopped.  To get around that you can map directories into the container on
+startup.  This would allow the container to write data to a location that won&rsquo;t
+be destroyed when the container is shut down.  To map a directory into the
+namenode&rsquo;s main storage location, you would execute:</p>
+
+<p>   docker run -d -h namenode &mdash;dns 172.17.0.1 -p 50070:50070 -v &lt;persistent_storage_dir>:/var/lib/hadoop-hdfs rrati/hadoop-namenode</p>
+
+<p>This will mount whatever directory pointed to by &lt;persistent_storage_dir> in
+the conatiner at /var/lib/hadoop-hdfs.  The storage directory will need to be
+writable by the user running the daemon in the container.  In the case of the
+namenode, the daemon is run by the user hdfs.</p>
+
+<h2>Submitting a Job</h2>
+
+<p>We&rsquo;re about ready to submit a job into the docker cluster we started.  First
+we need to setup our host machine to talk to the hadoop cluster.  This is
+pretty simple and there are a few ways to do it.  Since I didn&rsquo;t expose the
+appropriate ports when I started the namenode and resourcemanager I will use
+the hostnames/IPs of the running containers.  I could have exposed the required
+ports when I started the containers and pointed the hadoop configuration files
+at localhost:<port>, but for this example I elected not to do that.</p>
+
+<p>First you need to install some hadoop pieces on the host system:</p>
+
+<pre><code>yum install hadoop-common hadoop-yarn
+</code></pre>
+
+<p>Then you&rsquo;ll need to modify /etc/hadoop/core-site.xml to point at the namenode.
+Replace the exist property definition for the follwing with:</p>
+
+<pre><code>&lt;property&gt;
+  &lt;name&gt;fs.default.name&lt;/name&gt;
+  &lt;value&gt;hdfs://namenode:8020&lt;/value&gt;
+&lt;/property&gt;
+</code></pre>
+
+<p>For simplity I use the hostnames I setup in my DNS server so I only have one
+location I have to deal with if IPs change.  You also have to make sure to add
+the dnsmasq server to the list of DNS servers in /etc/resolv.conf if you do it
+this way.  Using straight IPs works fine as well.</p>
+
+<p>Next you&rsquo;ll need to add this to /etc/hadoop/yarn-site.xml:</p>
+
+<pre><code>&lt;property&gt;
+  &lt;name&gt;yarn.resourcemanager.hostname&lt;/name&gt;
+  &lt;value&gt;resourcemgr&lt;/value&gt;
+&lt;/property&gt;
+</code></pre>
+
+<p>Again I&rsquo;m using the hostname defined in the dnsmasq server.  Once you make
+those two changes you can submit a job to your hadoop cluster running in your
+containers.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Apache Hadoop + docker + Fedora: Building Images]]></title>
