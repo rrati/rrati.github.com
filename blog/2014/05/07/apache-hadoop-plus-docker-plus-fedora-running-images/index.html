@@ -237,7 +237,7 @@ startup.  This would allow the container to write data to a location that won&rs
 be destroyed when the container is shut down.  To map a directory into the
 namenode&rsquo;s main storage location, you would execute:</p>
 
-<p>   docker run -d -h namenode &mdash;dns 172.17.0.1 -p 50070:50070 -v &lt;persistent_storage_dir>:/var/lib/hadoop-hdfs rrati/hadoop-namenode</p>
+<p>   docker run -d -h namenode &mdash;dns 172.17.0.1 -p 50070:50070 -v &lt;persistent_storage_dir>:/var/cache/hadoop-hdfs rrati/hadoop-namenode</p>
 
 <p>This will mount whatever directory pointed to by &lt;persistent_storage_dir> in
 the conatiner at /var/lib/hadoop-hdfs.  The storage directory will need to be
@@ -332,6 +332,8 @@ containers.</p>
         <a class="basic-alignment left" href="/blog/2014/05/06/apache-hadoop-plus-docker-plus-fedora-building-images/" title="Previous Post: Apache Hadoop + docker + Fedora: Building Images">&laquo; Apache Hadoop + docker + Fedora: Building Images</a>
       
       
+        <a class="basic-alignment right" href="/blog/2014/05/08/apache-hadoop-plus-docker-plus-fedora-why-it-works/" title="Next Post: Apache Hadoop + docker + Fedora: Why it Works">Apache Hadoop + docker + Fedora: Why it Works &raquo;</a>
+      
     </p>
   </footer>
 </article>
@@ -343,6 +345,10 @@ containers.</p>
     <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/05/08/apache-hadoop-plus-docker-plus-fedora-why-it-works/">Apache Hadoop + docker + Fedora: Why it Works</a>
+      </li>
     
       <li class="post">
         <a href="/blog/2014/05/07/apache-hadoop-plus-docker-plus-fedora-running-images/">Apache Hadoop + docker + Fedora: Running Images</a>
@@ -358,10 +364,6 @@ containers.</p>
     
       <li class="post">
         <a href="/blog/2012/09/26/using-cluster-suite-to-manage-a-high-availability-scheduler/">Using Cluster Suite to Manage a High Availability Scheduler</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2012/09/18/putting-it-together/">Putting It Together</a>
       </li>
     
   </ul>

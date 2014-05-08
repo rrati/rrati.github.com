@@ -4,7 +4,7 @@
   <title><![CDATA[Category: hadoop | application melding]]></title>
   <link href="http://rrati.github.com/blog/categories/hadoop/atom.xml" rel="self"/>
   <link href="http://rrati.github.com/"/>
-  <updated>2014-05-07T09:19:53-04:00</updated>
+  <updated>2014-05-08T09:45:23-04:00</updated>
   <id>http://rrati.github.com/</id>
   <author>
     <name><![CDATA[Robert Rati]]></name>
@@ -12,6 +12,106 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Apache Hadoop + docker + Fedora: Why it Works]]></title>
+    <link href="http://rrati.github.com/blog/2014/05/08/apache-hadoop-plus-docker-plus-fedora-why-it-works/"/>
+    <updated>2014-05-08T09:39:10-04:00</updated>
+    <id>http://rrati.github.com/blog/2014/05/08/apache-hadoop-plus-docker-plus-fedora-why-it-works</id>
+    <content type="html"><![CDATA[<p>In two previous posts <a href="http://rrati.github.io/blog/2014/05/06/apache-hadoop-plus-docker-plus-fedora-building-images">here</a> and <a href="http://rrati.github.io/blog/2014/05/07/apache-hadoop-plus-docker-plus-fedora-running-images">here</a> I&rsquo;ve outlined how to get hadoop
+running in docker containers, and along the way I&rsquo;ve left some important
+details unexplained.  Well, now I&rsquo;ll explain them.</p>
+
+<h2>Startup Order</h2>
+
+<p>The conatiner startup order mentioned in my post <a href="">here</a> is because some
+hadoop daemons require other daemons to be up before they will start.  The
+image that really dictates the start order is the datanode.  That image will
+launch a datanode and a yarn node manager.  The datanode will try to communicate
+with the namenode, and the node manager will try to communicate with the
+resource manager.  When either the datanode or the node manager are unable to
+communicate with their respective dependencies, they exit instead of retrying.
+That could possibly be mitigate but configuring supervisord to restart the
+daemon if it exits, and you could still end up in a race condition to get the
+containers started.</p>
+
+<h2>Hostnames</h2>
+
+<p>So why the specific hostnames in DNS?  That has more to do with how hadoop is
+configured inside the images.  If you look at the docker hadoop configuration
+files provided by Scott Collier they use hostnames instead of localhost or
+static IP addresses for what hosts are running important components.  This is
+namely the namenode and the resource manager.</p>
+
+<p>In the core-site.xml you can see where the namenode is defined:</p>
+
+<pre><code>&lt;property&gt;
+  &lt;name&gt;fs.default.name&lt;/name&gt;
+  &lt;value&gt;hdfs://namenode:8020&lt;/value&gt;
+&lt;/property&gt;
+</code></pre>
+
+<p>which is what imposes the requirement for the hostname of the namenode.  In the
+yarn-site.xml you&rsquo;ll find this:</p>
+
+<pre><code>&lt;property&gt;
+  &lt;name&gt;yarn.resourcemanager.hostname&lt;/name&gt;
+  &lt;value&gt;resourcemgr&lt;/value&gt;
+&lt;/property&gt;
+</code></pre>
+
+<p>And that imposes the hostname of the resource manager.  The hostnames for any
+datanodes aren&rsquo;t imposed by anything in the configuration.  I use datanode#
+for simplicity, but they could be anything so long as you use a hostname on
+container startup that you have setup in dnsmasq.</p>
+
+<p>When I launch the containers, I give them hostnames via the -h option.  As
+an example, the beginning of the line that I used to launch the namenode is:</p>
+
+<pre><code>docker run -d -h namenode ...
+</code></pre>
+
+<p>Here I am giving the container the hostname namenode.  If you want you can
+modify the configuration files that will be added to the images to use any
+hostname scheme you like, build the image(s), and then launch then with the
+appropriate hostname.</p>
+
+<h2>Port Mapping</h2>
+
+<p>I didn&rsquo;t mention this earlier, but the running containers have their web portals
+accessible to anything that can contact the host machine.  If you browse to
+port 50070 on the host machine, you&rsquo;ll see the namenode&rsquo;s web portal.  This is
+achieved by the port mapping option(s) I used when I started the containers.
+Using the namenode as an example, the relevant part of the command I used is:</p>
+
+<pre><code>docker run -d ... -p 50070:50070 ...
+</code></pre>
+
+<p>The -p is doing the port mapping.  It is mapping port 50070 on the host machine
+to port 50070 on the container.  This also means no other containers can try
+to map port 50070 to another container.  What this means for the hadoop
+containers is that I can&rsquo;t launch 2 datanode images with the same ports mapped
+on the same host.  To get around that, I usually launch the datanodes with
+this command:</p>
+
+<pre><code>docker run -d -h datanode1 --dns &lt;dns_ip&gt; -p 50075 -p 8042 rrati/hadoop-datanode
+</code></pre>
+
+<p>What this does is it tells docker to map an ephemeral port on the host machine
+to 50075 on the container and another ephemeral port on the host machine to
+8042 on the container.  I discover which ephemeral ports are used by running:</p>
+
+<pre><code>docker ps
+</code></pre>
+
+<p>In the output you will see something like:</p>
+
+<p>de33e77a7d73        rrati/hadoop-datanode:latest   supervisord -n      6 seconds ago       Up 4 seconds        0.0.0.0:62000->50075/tcp, 0.0.0.0:62001->8042/tcp, 45454/tcp, 50010/tcp, 50020/tcp, 50475/tcp, 8010/tcp, 8040/tcp   angry_bohr</p>
+
+<p>So to access the datanode web portal I would access port 62000 on the host
+machine, and to access the node manager web portal I would access port 62001.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Apache Hadoop + docker + Fedora: Running Images]]></title>
@@ -164,7 +264,7 @@ startup.  This would allow the container to write data to a location that won&rs
 be destroyed when the container is shut down.  To map a directory into the
 namenode&rsquo;s main storage location, you would execute:</p>
 
-<p>   docker run -d -h namenode &mdash;dns 172.17.0.1 -p 50070:50070 -v &lt;persistent_storage_dir>:/var/lib/hadoop-hdfs rrati/hadoop-namenode</p>
+<p>   docker run -d -h namenode &mdash;dns 172.17.0.1 -p 50070:50070 -v &lt;persistent_storage_dir>:/var/cache/hadoop-hdfs rrati/hadoop-namenode</p>
 
 <p>This will mount whatever directory pointed to by &lt;persistent_storage_dir> in
 the conatiner at /var/lib/hadoop-hdfs.  The storage directory will need to be
