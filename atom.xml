@@ -4,7 +4,7 @@
   <title><![CDATA[application melding]]></title>
   <link href="http://rrati.github.com/atom.xml" rel="self"/>
   <link href="http://rrati.github.com/"/>
-  <updated>2014-05-08T09:45:23-04:00</updated>
+  <updated>2014-05-09T07:31:10-04:00</updated>
   <id>http://rrati.github.com/</id>
   <author>
     <name><![CDATA[Robert Rati]]></name>
@@ -12,6 +12,73 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Apache Hadoop + docker + Fedora: Issues and Limitations]]></title>
+    <link href="http://rrati.github.com/blog/2014/05/09/apache-hadoop-plus-docker-plus-fedora-issues-and-limitations/"/>
+    <updated>2014-05-09T07:26:34-04:00</updated>
+    <id>http://rrati.github.com/blog/2014/05/09/apache-hadoop-plus-docker-plus-fedora-issues-and-limitations</id>
+    <content type="html"><![CDATA[<p>In my previous posts <a href="http://rrati.github.io/blog/2014/05/06/apache-hadoop-plus-docker-plus-fedora-building-images">here</a>, <a href="http://rrati.github.io/blog/2014/05/07/apache-hadoop-plus-docker-plus-fedora-running-images">here</a>, and <a href="http://rrati.github.io/blog/2014/05/08/apache-hadoop-plus-docker-plus-fedora-why-it-works">here</a> I detailed how to create
+docker images with hadoop installed and pre-configured as well as how they
+work.  While it is neat that this can be done, its usefulness is somewhat
+limited because the containers will all need to run on a single host.  You
+can&rsquo;t scale to a very useful cluster with all the resources running on a single
+machine.  The limitations come mostly from docker&rsquo;s networking capability.  I
+used docker version 0.9 in Fedora 20 for my testing.</p>
+
+<h2>Docker Networking Limitations</h2>
+
+<p>In docker 0.9 the networking support is rather limiting.  You can find a more
+detailed explaination for how it functions pretty easily elsewhere, but in a
+nut shell docker containers are given IP addresses in a subnet determined by
+the IP address of the bridge interface docker will use.  IP addresses are
+assigned depending on the order the containers are started so the only way to
+ensure containers get the same IP address is to ensure the number of containers
+running on a host is always the same and the containers are always started in
+the same order.  If the IP address of the bridge interface is changed then you
+won&rsquo;t get the same IP addresses no matter what.</p>
+
+<p>Docker also doesn&rsquo;t allow a container to talk on the host network directly like
+you can in bridge networking mode with most virtualization software.  This
+means there&rsquo;s no way for a container to talk to a real DHCP server and be
+managed and accessible like physcial machines.  This also means there&rsquo;s no way
+to directly access a container from outside the host machine.  DNS becomes
+difficult if not useless all together.</p>
+
+<p>The only means docker provides for external access to a container is port
+forwarding.  Docker accomplishes this behind the scenes by adding forwarding
+rules into the host machine&rsquo;s iptables rules for each port forwarded.  This can
+get messy if you have many ports being forwarded to your containers.</p>
+
+<p>If your application needs DNS you&rsquo;re pretty much hosed as far as I can see.</p>
+
+<h2>Cross-Host Networking with Containers</h2>
+
+<p>Is all hope lost for containers communicating across host machines?  Luckily,
+No.  Despite these limitations, there are some tools and methods that allow
+containers to communicate with containers running on other hosts.  They all
+involve manipulating iptables in combination with special setup.  There are a
+number of documented approaches to solve this problem.  The interesting ones
+I&rsquo;ve found are:</p>
+
+<ul>
+<li><a href="http://goldmann.pl/blog/2014/01/21/connecting-docker-containers-on-multiple-hosts">Open vSwitch</a></li>
+<li><a href="https://github.com/jpetazzo/pipework">pipework</a></li>
+<li><a href="http://blog.codeaholics.org/2013/giving-dockerlxc-containers-a-routable-ip-address">Virutal Interfaces</a></li>
+<li><a href="https://github.com/openshift/geard">geard</a></li>
+<li><a href="http://objectiveoriented.com/devops/2014/02/15/docker-io-service-discovery-your-network-and-how-to-make-it-work">Service Discovery with Skydock and Skydns</a></li>
+</ul>
+
+
+<p>The two approaches from that list that seem most interesting to me are geard
+and the virtual interfaces approach.  geard is much more than just iptables
+manipulation and its tool chain looks to make managing containers easier.  The
+virtual interfaces approach is the closest I&rsquo;ve seen to docker doing bridge
+networking used by other virtualization technologies.  Which approach you use
+probably depends upon what your use case will be.  For hadoop I plan to try out
+geard and disabling DNS lookups in the namenode.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Apache Hadoop + docker + Fedora: Why it Works]]></title>

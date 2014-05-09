@@ -1,0 +1,305 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Apache Hadoop + docker + Fedora: Issues and Limitations - application melding</title>
+  <meta name="author" content="Robert Rati">
+
+  
+  <meta name="description" content="In my previous posts here, here, and here I detailed how to create
+docker images with hadoop installed and pre-configured as well as how they
+work. &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://rrati.github.com/blog/2014/05/09/apache-hadoop-plus-docker-plus-fedora-issues-and-limitations/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/ender.js"></script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <link href="/atom.xml" rel="alternate" title="application melding" type="application/atom+xml">
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">application melding</a></h1>
+  
+    <h2>making square pegs fit in round holes</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:rrati.github.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Apache Hadoop + Docker + Fedora: Issues and Limitations</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-05-09T07:26:34-04:00" pubdate data-updated="true">May 9<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>In my previous posts <a href="http://rrati.github.io/blog/2014/05/06/apache-hadoop-plus-docker-plus-fedora-building-images">here</a>, <a href="http://rrati.github.io/blog/2014/05/07/apache-hadoop-plus-docker-plus-fedora-running-images">here</a>, and <a href="http://rrati.github.io/blog/2014/05/08/apache-hadoop-plus-docker-plus-fedora-why-it-works">here</a> I detailed how to create
+docker images with hadoop installed and pre-configured as well as how they
+work.  While it is neat that this can be done, its usefulness is somewhat
+limited because the containers will all need to run on a single host.  You
+can&rsquo;t scale to a very useful cluster with all the resources running on a single
+machine.  The limitations come mostly from docker&rsquo;s networking capability.  I
+used docker version 0.9 in Fedora 20 for my testing.</p>
+
+<h2>Docker Networking Limitations</h2>
+
+<p>In docker 0.9 the networking support is rather limiting.  You can find a more
+detailed explaination for how it functions pretty easily elsewhere, but in a
+nut shell docker containers are given IP addresses in a subnet determined by
+the IP address of the bridge interface docker will use.  IP addresses are
+assigned depending on the order the containers are started so the only way to
+ensure containers get the same IP address is to ensure the number of containers
+running on a host is always the same and the containers are always started in
+the same order.  If the IP address of the bridge interface is changed then you
+won&rsquo;t get the same IP addresses no matter what.</p>
+
+<p>Docker also doesn&rsquo;t allow a container to talk on the host network directly like
+you can in bridge networking mode with most virtualization software.  This
+means there&rsquo;s no way for a container to talk to a real DHCP server and be
+managed and accessible like physcial machines.  This also means there&rsquo;s no way
+to directly access a container from outside the host machine.  DNS becomes
+difficult if not useless all together.</p>
+
+<p>The only means docker provides for external access to a container is port
+forwarding.  Docker accomplishes this behind the scenes by adding forwarding
+rules into the host machine&rsquo;s iptables rules for each port forwarded.  This can
+get messy if you have many ports being forwarded to your containers.</p>
+
+<p>If your application needs DNS you&rsquo;re pretty much hosed as far as I can see.</p>
+
+<h2>Cross-Host Networking with Containers</h2>
+
+<p>Is all hope lost for containers communicating across host machines?  Luckily,
+No.  Despite these limitations, there are some tools and methods that allow
+containers to communicate with containers running on other hosts.  They all
+involve manipulating iptables in combination with special setup.  There are a
+number of documented approaches to solve this problem.  The interesting ones
+I&rsquo;ve found are:</p>
+
+<ul>
+<li><a href="http://goldmann.pl/blog/2014/01/21/connecting-docker-containers-on-multiple-hosts">Open vSwitch</a></li>
+<li><a href="https://github.com/jpetazzo/pipework">pipework</a></li>
+<li><a href="http://blog.codeaholics.org/2013/giving-dockerlxc-containers-a-routable-ip-address">Virutal Interfaces</a></li>
+<li><a href="https://github.com/openshift/geard">geard</a></li>
+<li><a href="http://objectiveoriented.com/devops/2014/02/15/docker-io-service-discovery-your-network-and-how-to-make-it-work">Service Discovery with Skydock and Skydns</a></li>
+</ul>
+
+
+<p>The two approaches from that list that seem most interesting to me are geard
+and the virtual interfaces approach.  geard is much more than just iptables
+manipulation and its tool chain looks to make managing containers easier.  The
+virtual interfaces approach is the closest I&rsquo;ve seen to docker doing bridge
+networking used by other virtualization technologies.  Which approach you use
+probably depends upon what your use case will be.  For hadoop I plan to try out
+geard and disabling DNS lookups in the namenode.</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Robert Rati</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-05-09T07:26:34-04:00" pubdate data-updated="true">May 9<span>th</span>, 2014</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/big-data/'>Big Data</a>, <a class='category' href='/blog/categories/fedora/'>Fedora</a>, <a class='category' href='/blog/categories/hadoop/'>hadoop</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://rrati.github.com/blog/2014/05/09/apache-hadoop-plus-docker-plus-fedora-issues-and-limitations/" data-via="" data-counturl="http://rrati.github.com/blog/2014/05/09/apache-hadoop-plus-docker-plus-fedora-issues-and-limitations/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2014/05/08/apache-hadoop-plus-docker-plus-fedora-why-it-works/" title="Previous Post: Apache Hadoop + docker + Fedora: Why it Works">&laquo; Apache Hadoop + docker + Fedora: Why it Works</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/05/09/apache-hadoop-plus-docker-plus-fedora-issues-and-limitations/">Apache Hadoop + docker + Fedora: Issues and Limitations</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/05/08/apache-hadoop-plus-docker-plus-fedora-why-it-works/">Apache Hadoop + docker + Fedora: Why it Works</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/05/07/apache-hadoop-plus-docker-plus-fedora-running-images/">Apache Hadoop + docker + Fedora: Running Images</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/05/06/apache-hadoop-plus-docker-plus-fedora-building-images/">Apache Hadoop + docker + Fedora: Building Images</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2012/10/18/using-cluster-suites-gui-to-configure-high-availability-schedulers/">Using Cluster Suite's GUI to configure High Availability Schedulers </a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/rrati">@rrati</a> on GitHub
+  
+  <script type="text/javascript">
+    $.domReady(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'rrati',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Robert Rati -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

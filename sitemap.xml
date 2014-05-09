@@ -35,11 +35,17 @@
         <lastmod>2014-05-08T09:43:39-04:00</lastmod>
     </url>
     <url>
+        <loc>
+            http://rrati.github.com/blog/2014/05/09/apache-hadoop-plus-docker-plus-fedora-issues-and-limitations/
+        </loc>
+        <lastmod>2014-05-09T07:28:15-04:00</lastmod>
+    </url>
+    <url>
         <loc>http://rrati.github.com/blog/archives/</loc>
-        <lastmod>2014-05-08T09:43:39-04:00</lastmod>
+        <lastmod>2014-05-09T07:28:15-04:00</lastmod>
     </url>
     <url>
         <loc>http://rrati.github.com/</loc>
-        <lastmod>2014-05-08T09:43:39-04:00</lastmod>
+        <lastmod>2014-05-09T07:28:15-04:00</lastmod>
     </url>
 </urlset>
