@@ -97,7 +97,7 @@ details unexplained.  Well, now I&rsquo;ll explain them.</p>
 
 <h2>Startup Order</h2>
 
-<p>The conatiner startup order mentioned in my post <a href="">here</a> is because some
+<p>The container startup order mentioned in my post <a href="">here</a> is because some
 hadoop daemons require other daemons to be up before they will start.  The
 image that really dictates the start order is the datanode.  That image will
 launch a datanode and a yarn node manager.  The datanode will try to communicate

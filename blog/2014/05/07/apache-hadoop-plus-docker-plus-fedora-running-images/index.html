@@ -203,15 +203,13 @@ order I provided.</p>
 
 <p>What this command is doing is important so I&rsquo;ll break it down piece by piece:</p>
 
-<p>-d: Run in daemon mode
--h: Give the container this hostname
-&mdash;dns: Set this as the DNS server in the container.  It should be the IP address</p>
+<ul>
+<li>-d: Run in daemon mode</li>
+<li>-h: Give the container this hostname</li>
+<li>&mdash;dns: Set this as the DNS server in the container.  It should be the IP address of the router inside docker.  This should always be the first IP address in the subnet determined by the bridge interface.</li>
+<li>-p: Map a port on the host machine to a port on the container</li>
+</ul>
 
-<pre><code>   of the router inside docker.  This should always be the first IP address
-   in the subnet determined by the bridge interface.
-</code></pre>
-
-<p>-p: Map a port on the host machine to a port on the container</p>
 
 <p>For the containers and the DNS setup I&rsquo;ve been detailing in my posts using the
 default docker bridge interface I would execute:</p>
@@ -240,7 +238,7 @@ namenode&rsquo;s main storage location, you would execute:</p>
 <p>   docker run -d -h namenode &mdash;dns 172.17.0.1 -p 50070:50070 -v &lt;persistent_storage_dir>:/var/cache/hadoop-hdfs rrati/hadoop-namenode</p>
 
 <p>This will mount whatever directory pointed to by &lt;persistent_storage_dir> in
-the conatiner at /var/lib/hadoop-hdfs.  The storage directory will need to be
+the container at /var/lib/hadoop-hdfs.  The storage directory will need to be
 writable by the user running the daemon in the container.  In the case of the
 namenode, the daemon is run by the user hdfs.</p>
 
